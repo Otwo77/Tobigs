@@ -1,0 +1,435 @@
+---
+title: "생존"
+output: html_document
+date: "2025-11-22"
+---
+
+
+
+
+```{r, include=FALSE}
+
+library(survival)
+library(survminer)
+library(dplyr)
+library(muhaz)
+
+```
+
+```{r, include=FALSE}
+setwd("C:/Users/akds8/OneDrive/바탕 화면/생존프로젝트")
+
+df <- read.csv("마지막찐생존_변환.csv")
+```
+
+
+#### 생존 객체 설정
+
+```{r}
+surv_obj <- Surv(time = df$time, event = df$event)
+```
+
+
+
+#### KM 생존함수
+
+```{r}
+fit_km <- survfit(surv_obj ~ 1, data = df)
+summary(fit_km)
+
+# 그래프
+ggsurvplot(fit_km, 
+           conf.int = TRUE,
+           xlab = "시간(time)", 
+           ylab = "생존확률",
+           title = "전체 Kaplan-Meier 생존곡선")
+```
+
+#### KM 누적 위험 함수
+
+
+```{r}
+ggsurvplot(fit_km,
+           data = df,
+           fun = "cumhaz", # 누적 위험 함수
+           conf.int = TRUE,
+           title = "Kaplan-Meier Cumulative Hazard Function")
+```
+
+
+#### cox model
+
+
+```{r}
+
+
+cox_model <- coxph(
+  surv_obj ~ busdist + subdist + com + com_small + public + mp,
+  data = df
+)
+
+summary(cox_model)
+
+
+```
+
+```{r}
+df$public_ter <- cut(
+  df$public,
+  breaks = quantile(df$public, probs = seq(0, 1, length.out = 4), na.rm = TRUE),
+  include.lowest = TRUE,
+  labels = c("T1(최저)", "T2(중간)", "T3(최고)")
+)
+
+fit_pub_ter <- survfit(Surv(time, event) ~ public_ter, data = df)
+
+ggsurvplot(
+  fit_pub_ter,
+  data = df,
+  conf.int = TRUE,
+  risk.table = TRUE,
+  ggtheme = theme_bw(),
+  palette = "Dark2",
+  xlab = "Time",
+  ylab = "Survival Probability",
+  legend.title = "Public(3분위)"
+)
+```
+
+
+
+```{r}
+
+# Schoenfeld 잔차 기반 PH 가정 검정
+ph_test <- cox.zph(cox_model)
+ph_test
+plot(ph_test)
+```
+
+
+
+```{r}
+ggcoxdiagnostics(
+  cox_model,
+  type = "deviance",
+  ggtheme = theme_bw()
+)
+```
+
+
+```{r}
+ggforest(cox_model, data = df)
+```
+
+
+
+## 음식
+
+```{r}
+
+df_food <- df %>% 
+  filter(상권업종대분류명 == "음식")
+
+```
+
+
+
+```{r}
+surv_obj <- Surv(time = df_food$time, event = df_food$event)
+```
+
+
+
+#### KM 생존함수
+
+```{r}
+fit_km <- survfit(surv_obj ~ 1, data = df_food)
+summary(fit_km)
+
+# 그래프
+ggsurvplot(fit_km, 
+           conf.int = TRUE,
+           xlab = "시간(time)", 
+           ylab = "생존확률",
+           title = "전체 Kaplan-Meier 생존곡선")
+```
+
+#### KM 누적 위험 함수
+
+
+```{r}
+ggsurvplot(fit_km,
+           data = df_food,
+           fun = "cumhaz", # 누적 위험 함수
+           conf.int = TRUE,
+           title = "Kaplan-Meier Cumulative Hazard Function")
+```
+
+
+#### cox model
+
+
+```{r}
+
+
+cox_model <- coxph(
+  surv_obj ~ busdist + subdist + com + com_small + public + mp,
+  data = df_food
+)
+
+summary(cox_model)
+
+
+```
+
+```{r}
+df_food$public_ter <- cut(
+  df_food$public,
+  breaks = quantile(df_food$public, probs = seq(0, 1, length.out = 4), na.rm = TRUE),
+  include.lowest = TRUE,
+  labels = c("T1(최저)", "T2(중간)", "T3(최고)")
+)
+
+fit_pub_ter <- survfit(Surv(time, event) ~ public_ter, data = df_food)
+
+ggsurvplot(
+  fit_pub_ter,
+  data = df_food,
+  conf.int = TRUE,
+  risk.table = TRUE,
+  ggtheme = theme_bw(),
+  palette = "Dark2",
+  xlab = "Time",
+  ylab = "Survival Probability",
+  legend.title = "Public(3분위)"
+)
+```
+
+
+```{r}
+
+# Schoenfeld 잔차 기반 PH 가정 검정
+ph_test <- cox.zph(cox_model)
+ph_test
+plot(ph_test)
+```
+
+
+
+```{r}
+ggcoxdiagnostics(
+  cox_model,
+  type = "deviance",
+  ggtheme = theme_bw()
+)
+```
+
+```{r}
+ggforest(cox_model, data = df_food)
+```
+
+## 교육
+
+```{r}
+df_edu <- df %>% 
+  filter(상권업종대분류명 == "교육")
+```
+
+
+```{r}
+surv_obj <- Surv(time = df_edu$time, event = df_edu$event)
+```
+
+
+
+#### KM 생존함수
+
+```{r}
+fit_km <- survfit(surv_obj ~ 1, data = df_edu)
+summary(fit_km)
+
+# 그래프
+ggsurvplot(fit_km, 
+           conf.int = TRUE,
+           xlab = "시간(time)", 
+           ylab = "생존확률",
+           title = "전체 Kaplan-Meier 생존곡선")
+```
+
+#### KM 누적 위험 함수
+
+
+```{r}
+ggsurvplot(fit_km,
+           data = df_edu,
+           fun = "cumhaz", # 누적 위험 함수
+           conf.int = TRUE,
+           title = "Kaplan-Meier Cumulative Hazard Function")
+```
+
+
+#### cox model
+
+
+```{r}
+
+
+cox_model <- coxph(
+  surv_obj ~ busdist + subdist + com + com_small + public + mp,
+  data = df_edu
+)
+
+summary(cox_model)
+
+
+```
+```{r}
+df_edu$public_ter <- cut(
+  df_edu$public,
+  breaks = quantile(df_edu$public, probs = seq(0, 1, length.out = 4), na.rm = TRUE),
+  include.lowest = TRUE,
+  labels = c("T1(최저)", "T2(중간)", "T3(최고)")
+)
+
+fit_pub_ter <- survfit(Surv(time, event) ~ public_ter, data = df_edu)
+
+ggsurvplot(
+  fit_pub_ter,
+  data = df_edu,
+  conf.int = TRUE,
+  risk.table = TRUE,
+  ggtheme = theme_bw(),
+  palette = "Dark2",
+  xlab = "Time",
+  ylab = "Survival Probability",
+  legend.title = "Public(3분위)"
+)
+```
+
+
+
+```{r}
+
+# Schoenfeld 잔차 기반 PH 가정 검정
+ph_test <- cox.zph(cox_model)
+ph_test
+plot(ph_test)
+```
+
+
+
+```{r}
+ggcoxdiagnostics(
+  cox_model,
+  type = "deviance",
+  ggtheme = theme_bw()
+)
+```
+
+```{r}
+ggforest(cox_model, data = df_edu)
+```
+
+
+## 소매
+
+```{r}
+df_re <- df %>% 
+  filter(상권업종대분류명 == "소매")
+```
+
+
+```{r}
+surv_obj <- Surv(time = df_re$time, event = df_re$event)
+```
+
+
+
+#### KM 생존함수
+
+```{r}
+fit_km <- survfit(surv_obj ~ 1, data = df_re)
+summary(fit_km)
+
+# 그래프
+ggsurvplot(fit_km, 
+           conf.int = TRUE,
+           xlab = "시간(time)", 
+           ylab = "생존확률",
+           title = "전체 Kaplan-Meier 생존곡선")
+```
+
+#### KM 누적 위험 함수
+
+
+```{r}
+ggsurvplot(fit_km,
+           data = df_re,
+           fun = "cumhaz", # 누적 위험 함수
+           conf.int = TRUE,
+           title = "Kaplan-Meier Cumulative Hazard Function")
+```
+
+
+#### cox model
+
+
+```{r}
+
+
+cox_model <- coxph(
+  surv_obj ~ busdist + subdist + com + com_small + public + mp,
+  data = df_re
+)
+
+summary(cox_model)
+
+
+```
+
+```{r}
+df_re$public_ter <- cut(
+  df_re$public,
+  breaks = quantile(df_re$public, probs = seq(0, 1, length.out = 4), na.rm = TRUE),
+  include.lowest = TRUE,
+  labels = c("T1(최저)", "T2(중간)", "T3(최고)")
+)
+
+fit_pub_ter <- survfit(Surv(time, event) ~ public_ter, data = df_re)
+
+ggsurvplot(
+  fit_pub_ter,
+  data = df_re,
+  conf.int = TRUE,
+  risk.table = TRUE,
+  ggtheme = theme_bw(),
+  palette = "Dark2",
+  xlab = "Time",
+  ylab = "Survival Probability",
+  legend.title = "Public(3분위)"
+)
+```
+
+
+
+```{r}
+
+# Schoenfeld 잔차 기반 PH 가정 검정
+ph_test <- cox.zph(cox_model)
+ph_test
+plot(ph_test)
+```
+
+
+
+```{r}
+ggcoxdiagnostics(
+  cox_model,
+  type = "deviance",
+  ggtheme = theme_bw()
+)
+```
+
+```{r}
+ggforest(cox_model, data = df_re)
+```
